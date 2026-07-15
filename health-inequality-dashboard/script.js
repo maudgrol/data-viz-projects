@@ -22,6 +22,7 @@ let currentYearIdx = 0;
 let playing = false;
 let timer = null;
 let pinnedCode = null;
+let soloMode = false;
 let activeGroups = new Set(INCOME_GROUPS);
 
 // SVG layers
@@ -50,6 +51,12 @@ Promise.all([
 function buildSearchDatalist() {
   const datalist = document.getElementById("country-list");
   [...allData]
+    .filter((d) =>
+      allYears.some((y) => {
+        const v = d.years[String(y)];
+        return v?.life_exp != null && v?.health_exp_pc != null;
+      })
+    )
     .sort((a, b) => a.country.localeCompare(b.country))
     .forEach((d) => {
       const opt = document.createElement("option");
@@ -153,13 +160,39 @@ function initChart() {
     .text("Life expectancy at birth (years)");
 
   bubblesG = chartG.append("g").attr("class", "bubbles");
+
+  // Solo-mode corner label (top-left of chart area, hidden until solo mode)
+  const soloLabelG = chartG.append("g")
+    .attr("id", "solo-label-g")
+    .attr("transform", "translate(8, 8)")
+    .attr("opacity", 0)
+    .attr("pointer-events", "none");
+
+  soloLabelG.append("rect")
+    .attr("class", "solo-bg")
+    .attr("height", 32).attr("width", 140)
+    .attr("rx", 6)
+    .attr("fill", "white").attr("fill-opacity", 0.88)
+    .attr("stroke", "#e0ddd8").attr("stroke-width", 1);
+
+  soloLabelG.append("circle")
+    .attr("class", "solo-dot")
+    .attr("cx", 16).attr("cy", 16).attr("r", 6);
+
+  soloLabelG.append("text")
+    .attr("class", "solo-text")
+    .attr("x", 30).attr("y", 21)
+    .attr("font-size", 13).attr("font-weight", 700).attr("fill", "#1a1a1a");
 }
 
 // ── Frame rendering ──────────────────────────────────────────────────────────
 function getYearData(yearIdx) {
   const year = String(allYears[yearIdx]);
   return allData
-    .filter((d) => d.years[year] && activeGroups.has(d.income_group))
+    .filter((d) => {
+      if (soloMode && d.code !== pinnedCode) return false;
+      return d.years[year] && activeGroups.has(d.income_group);
+    })
     .map((d) => ({
       code: d.code,
       country: d.country,
@@ -255,20 +288,50 @@ function positionTooltip(event) {
   tooltip.style.top = (y + th + 8 > rect.height ? y - th - 8 : y + 8) + "px";
 }
 
+// ── Solo label helpers ───────────────────────────────────────────────────────
+function showSoloLabel(code) {
+  const country = allData.find((d) => d.code === code);
+  if (!country) return;
+  const color = COLOR_SCALE(country.income_group);
+  const g = chartG.select("#solo-label-g");
+  g.select(".solo-dot").attr("fill", color);
+  const textEl = g.select(".solo-text").text(country.country);
+  const tw = textEl.node().getComputedTextLength();
+  g.select(".solo-bg").attr("width", tw + 42);
+  g.transition().duration(300).attr("opacity", 1);
+}
+
+function hideSoloLabel() {
+  chartG.select("#solo-label-g").transition().duration(200).attr("opacity", 0);
+}
+
 // ── Pin / trace ───────────────────────────────────────────────────────────────
 function togglePin(code) {
   if (pinnedCode === code) {
-    pinnedCode = null;
-    chartG.selectAll(".trace-line").remove();
-    document.getElementById("detail-panel").hidden = true;
-    bubblesG.selectAll(".bubble").classed("pinned", false);
+    resetView();
   } else {
     pinnedCode = code;
     drawTraceLine(code);
     document.getElementById("detail-panel").hidden = false;
     updateDetailPanel();
+    document.getElementById("pin-controls").hidden = false;
+    document.getElementById("trajectory-btn").innerHTML = animateBtnLabel();
     bubblesG.selectAll(".bubble").classed("pinned", (d) => d.code === code);
   }
+}
+
+function resetView() {
+  pause();
+  soloMode = false;
+  pinnedCode = null;
+  chartG.selectAll(".trace-line").remove();
+  bubblesG.selectAll(".bubble").classed("pinned", false);
+  document.getElementById("detail-panel").hidden = true;
+  document.getElementById("pin-controls").hidden = true;
+  document.getElementById("trajectory-btn").innerHTML = "&#9654; Animate";
+  document.getElementById("play-btn").disabled = false;
+  hideSoloLabel();
+  drawFrame(currentYearIdx, false);
 }
 
 function drawTraceLine(code) {
@@ -430,20 +493,38 @@ function bindControls() {
     pulseBubble(match.code);
   });
 
-  document.getElementById("detail-close").addEventListener("click", () => {
-    pinnedCode = null;
-    chartG.selectAll(".trace-line").remove();
-    bubblesG.selectAll(".bubble").classed("pinned", false);
-    document.getElementById("detail-panel").hidden = true;
+  document.getElementById("detail-close").addEventListener("click", resetView);
+  document.getElementById("reset-btn").addEventListener("click", resetView);
+
+  document.getElementById("trajectory-btn").addEventListener("click", () => {
+    if (playing && soloMode) {
+      pause();
+      return;
+    }
+    soloMode = true;
+    document.getElementById("play-btn").disabled = true;
+    document.getElementById("trajectory-btn").innerHTML = "&#9646;&#9646; Pause animation";
+    showSoloLabel(pinnedCode);
+    const pinnedCountry = allData.find((d) => d.code === pinnedCode);
+    const firstValidIdx = allYears.findIndex((y) => {
+      const v = pinnedCountry?.years[String(y)];
+      return v?.life_exp != null && v?.health_exp_pc != null;
+    });
+    drawFrame(firstValidIdx >= 0 ? firstValidIdx : 0, false);
+    play();
   });
+}
+
+function animateBtnLabel() {
+  const name = allData.find((d) => d.code === pinnedCode)?.country || "";
+  return `&#9654; Animate ${name}`;
 }
 
 function play() {
   playing = true;
-  document.getElementById("play-btn").innerHTML = "&#9646;&#9646; Pause";
-  // Wrap around to start if at end
-  if (currentYearIdx >= allYears.length - 1) {
-    drawFrame(0, false);
+  if (!soloMode) {
+    document.getElementById("play-btn").innerHTML = "&#9646;&#9646; Pause all";
+    if (currentYearIdx >= allYears.length - 1) drawFrame(0, false);
   }
   timer = d3.interval(() => {
     if (currentYearIdx >= allYears.length - 1) {
@@ -457,6 +538,9 @@ function play() {
 
 function pause() {
   playing = false;
-  document.getElementById("play-btn").innerHTML = "&#9654; Play";
+  document.getElementById("play-btn").innerHTML = "&#9654; Play all";
+  if (soloMode) {
+    document.getElementById("trajectory-btn").innerHTML = animateBtnLabel();
+  }
   if (timer) { timer.stop(); timer = null; }
 }
