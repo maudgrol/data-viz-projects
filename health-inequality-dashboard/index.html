@@ -18,7 +18,7 @@
     </header>
 
     <div id="controls">
-      <button id="play-btn" aria-label="Play animation">&#9654; Play</button>
+      <button id="play-btn" aria-label="Play animation">&#9654; Play all</button>
       <div id="slider-wrap">
         <span id="year-label">1990</span>
         <input type="range" id="year-slider" min="0" max="33" value="0" step="1" />
@@ -27,6 +27,11 @@
         <input type="text" id="country-search" list="country-list" placeholder="Search country…" autocomplete="off" aria-label="Search for a country" />
         <datalist id="country-list"></datalist>
       </div>
+    </div>
+
+    <div id="pin-controls" hidden>
+      <button id="trajectory-btn">&#9654; Animate</button>
+      <button id="reset-btn">&#10006; Reset</button>
     </div>
 
     <div id="legend"></div>
