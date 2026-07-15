@@ -1,0 +1,163 @@
+---
+title: "Education under attack"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    theme: yeti
+    source_code: embed
+    navbar:
+      - {icon: "fa-database", href: "https://data.humdata.org/dataset/eua-2018", align: right}
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE)
+
+library(flexdashboard)
+library(tidyverse)
+library(here)
+library(plotly)
+library(maps)
+library(viridisLite)
+
+```
+
+```{r set paths and load data, include=FALSE}
+
+setwd(here())
+dataDir <- "./data"
+
+# load relevant data 
+incidents_of_attacks <- read.csv(file.path(dataDir, "incidents-of-attacks-on-education-2013-2017.csv"), header = TRUE)
+severity_of_attacks <- read.csv(file.path(dataDir, "severity-of-attacks-against-education-2013-2017.csv"), header = TRUE)
+people_harmed <- read.csv(file.path(dataDir, "students-and-education-staff-harmed-by-attacks-on-education-2013-2017.csv"), header = TRUE)
+
+incidents_of_attacks <- incidents_of_attacks[-c(1), ]   # remove first row with variable names
+severity_of_attacks <- severity_of_attacks[-c(1), ]   # remove first row with variable names
+
+# change column "year" to numeric
+incidents_of_attacks$year.num <- as.numeric(gsub("X","", incidents_of_attacks$Year))
+people_harmed$year.num <- as.numeric(gsub("X","", people_harmed$Year))
+severity_of_attacks$year.num <- as.numeric(gsub("X","", severity_of_attacks$year))
+
+incidents_of_attacks$incidents <- as.numeric(incidents_of_attacks$incidents)
+incidents_of_attacks$average <- factor(incidents_of_attacks$average)
+severity_of_attacks$Category_fctr <- factor(severity_of_attacks$Category, levels = c("Sporadic", "Affected", "Heavily Affected", "Very Heavily Affected"))
+
+# renaming some columns before merging
+incidents_of_attacks <- incidents_of_attacks %>% rename(incidents_averaged = average)
+people_harmed <- people_harmed %>% rename(ppl_harmed_averaged = averaged)
+severity_of_attacks <- severity_of_attacks %>% rename(severity_averaged = averaged)
+
+# create one dataframe
+data <- incidents_of_attacks %>% full_join(severity_of_attacks, by = c("Country", "year.num")) %>% full_join(people_harmed, by = c("Country", "year.num")) %>% select(Country, year.num, incidents, incidents_averaged, Category, Category_fctr, severity_averaged, ppl_harmed, ppl_harmed_averaged)
+
+# calculate average data across year for non-interactive dashboard
+data <- data %>% group_by(Country) %>% mutate(m_incidents = round(mean(incidents, na.rm=TRUE),1),
+                                              m_ppl_harmed = round(mean(ppl_harmed, na.rm = TRUE),1))
+
+# create data file to merge with maps data
+data_av <- data %>% distinct(Country, .keep_all = TRUE)
+
+world_map <- map_data("world")
+data.map <- full_join(world_map, data_av, world_map, by = c("region" = "Country"))
+
+```
+
+Data Information {.sidebar data-width=300}
+=====================================
+
+This dataset is extracted from the 2018 edition of the Global Coalition to Protect Education from Attack (GCPEA)’s flagship report, Education Under Attack. The report is the result of independent research conducted by GCPEA. Generous support for the report was provided by the Education Above All Foundation, the Norwegian Ministry of Foreign Affairs, and an anonymous donor. Columbia University’s Mailman School of Public Health contributed in-kind research support. For more information, visit eua2018.protectingeducation.org or protectingeducation.org.
+
+
+
+Incidents {data-orientation=rows}
+===================================== 
+
+Row {data-height=200}
+-------------------------------------
+
+### Average number of incidents per year globally
+
+```{r}
+
+mean_incidents_per_year <- data %>% group_by(year.num) %>% summarise(sum_per_year = sum(incidents, na.rm = TRUE)) %>% summarise(mean = mean(sum_per_year)) 
+
+valueBox(round(mean_incidents_per_year,0), icon = "fa-exclamation-triangle")
+```
+
+### Country with highest average number of incidents
+
+```{r}
+
+country_high_incidents <- data %>% group_by(Country) %>% summarise(mean = mean(incidents, na.rm = TRUE)) %>% arrange(desc(mean))
+
+valueBox(country_high_incidents[1,1], icon = "fa-globe")
+```
+
+
+Row {data-height=800}
+-----------------------------------------------------------------------
+
+### 
+
+``` {r}
+
+ggplotly(ggplot(data.map, aes(long, lat, group = group, text = paste("country:",region,"<br>","nr. of incidents:",m_incidents))) +
+           geom_polygon(aes(fill = m_incidents), colour = "darkgrey") + 
+           scale_fill_viridis_c(na.value="lightgrey", name="nr. of incidents") + 
+           theme_classic() + theme(axis.line = element_blank(), axis.ticks = element_blank(), 
+                                   axis.title = element_blank(), axis.text = element_blank(),
+                                   legend.title.align=0.5), tooltip = "text") %>%
+  layout(title = list(text=paste0("Number of Reported Incidents of Attacks on Students, Education Personnel and Education Infrastructure","<br>","<sup>","averaged across years: 2013-2017","</sup>"), x=0.5, y=1.01, xref="paper", yref="paper", xanchor="center", font=list(size=20, color="black")),
+         annotations = list(text='Source: <a href ="https://data.humdata.org/dataset/eua-2018">Global Coalition to Protect Education from Attack</a>', x=0.5,y=0, xref="paper", yref="paper", xanchor="center", showarrow=F, font=list(size=12, color="black")),         autosize = T, margin = list(l=20, r=20, b=20, t=30, pad=4))
+
+```
+
+
+
+Severity {data-orientation=rows}
+===================================== 
+
+Row {data-height=200}
+-------------------------------------
+
+### Average number of people harmed each year globally
+
+```{r}
+
+mean_ppl_harmed_year <- data %>% group_by(year.num) %>% summarise(sum_per_year = sum(ppl_harmed, na.rm = TRUE)) %>% summarise(mean = mean(sum_per_year)) 
+
+valueBox(round(mean_ppl_harmed_year,0), icon = "fa-user-friends")
+```
+
+### Country with most people harmed on average
+
+```{r}
+
+country_high_pplharmed <- data %>% group_by(Country) %>% summarise(mean = mean(ppl_harmed, na.rm = TRUE)) %>% arrange(desc(mean))
+
+valueBox(country_high_pplharmed[1,1], icon = "fa-globe")
+```
+
+
+
+Row {data-height=800}
+-----------------------------------------------------------------------
+
+### 
+
+``` {r}
+
+ggplotly(ggplot(data.map, aes(long, lat, group = group, text = paste("country:",region,"<br>","nr. of people harmed:",m_ppl_harmed))) +
+           geom_polygon(aes(fill = m_ppl_harmed), colour = "darkgrey") + 
+           scale_fill_viridis_c(na.value="lightgrey", name="people harmed") + 
+           theme_classic() + theme(axis.line = element_blank(), axis.ticks = element_blank(), 
+                                   axis.title = element_blank(), axis.text = element_blank(),
+                                   legend.title.align=0.5), tooltip = "text") %>%
+  layout(title = list(text=paste0("Number of Students, Teachers, and Other Education Personnel Harmed by Attacks on Education","<br>","<sup>","averaged across years: 2013-2017","</sup>"), x=0.5, y=1.01, xref="paper", yref="paper", xanchor="center", font=list(size=20, color="black")),
+         annotations = list(text='Source: <a href ="https://data.humdata.org/dataset/eua-2018">Global Coalition to Protect Education from Attack</a>', x=0.5,y=0, xref="paper", yref="paper", xanchor="center", showarrow=F, font=list(size=12, color="black")),
+         autosize = T, margin = list(l=20, r=20, b=20, t=30, pad=5))
+  
+```

@@ -1,0 +1,4 @@
+Source data used in this dashboard was accessed through [The Humanitarian Data Exchange](https://data.humdata.org/dataset/eua-2018) and was released under a Creative Commons Attribution International license.
+
+## CC BY
+Under the CC BY license, you are free to share (copy and redistribute the material in any medium or format) and or adapt (remix, transform, and build upon the material) for any purpose, even commercially. The licensor cannot revoke these freedoms as long as you follow the license terms. The license terms are that you must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use. Additionally, you may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
