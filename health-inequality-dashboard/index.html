@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Inequality Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Does Spending More Mean Living Longer?</h1>
+      <p class="subtitle">
+        Compare countries by how much they spend on healthcare versus how long their citizens live.
+        The gap between rich and poor countries is stark — but some nations beat the odds.
+        Click any bubble to trace its history.
+      </p>
+    </header>
+
+    <div id="controls">
+      <button id="play-btn" aria-label="Play animation">&#9654; Play</button>
+      <div id="slider-wrap">
+        <span id="year-label">1990</span>
+        <input type="range" id="year-slider" min="0" max="33" value="0" step="1" />
+      </div>
+    </div>
+
+    <div id="legend"></div>
+
+    <div id="chart-wrap">
+      <svg id="chart"></svg>
+      <div id="tooltip" role="tooltip" aria-hidden="true"></div>
+    </div>
+
+    <div id="detail-panel" hidden>
+      <div id="detail-header">
+        <span id="detail-country-name"></span>
+        <button id="detail-close" aria-label="Close detail panel">&times;</button>
+      </div>
+      <div id="detail-charts">
+        <div class="detail-chart-wrap">
+          <h3>Life expectancy vs. global average</h3>
+          <svg id="detail-svg"></svg>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Data: <a href="https://data.worldbank.org/indicator" target="_blank" rel="noopener">World Bank Open Data, World Development Indicators</a> (CC BY 4.0) &mdash; values may differ from national statistics due to estimation methodology.</p>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
