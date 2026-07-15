@@ -1,15 +1,21 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f7f6f3;
+  --bg: #f5f3ee;
   --surface: #ffffff;
   --text: #1a1a1a;
   --muted: #6b6b6b;
   --border: #e0ddd8;
-  --accent: #2d6a9f;
+  --accent: #c8553d;
   --radius: 6px;
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --chart-bg: #141414;
+  --chart-text: #808080;
+  --chart-grid: rgba(255,255,255,0.07);
 }
+
+/* Ensure hidden attribute works even when element has an explicit display rule */
+[hidden] { display: none !important; }
 
 body {
   background: var(--bg);
@@ -22,22 +28,37 @@ body {
 main {
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 40px 20px 56px;
 }
 
-header { margin-bottom: 24px; }
+/* Header */
+header { margin-bottom: 32px; }
 
 h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 10px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 0;
+}
+
+h1::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin-top: 16px;
 }
 
 .subtitle {
   color: var(--muted);
-  max-width: 680px;
-  font-size: 0.95rem;
+  max-width: 660px;
+  font-size: 1rem;
+  line-height: 1.65;
+  margin-top: 16px;
 }
 
 /* Controls */
@@ -61,6 +82,7 @@ h1 {
   transition: opacity 0.15s;
 }
 #play-btn:hover { opacity: 0.85; }
+#play-btn:disabled { opacity: 0.4; cursor: default; }
 
 #slider-wrap {
   display: flex;
@@ -101,9 +123,6 @@ h1 {
 }
 #country-search:focus { border-color: var(--accent); }
 #country-search::placeholder { color: #aaa; }
-
-/* Ensure hidden attribute works even when element has an explicit display rule */
-[hidden] { display: none !important; }
 
 /* Pin controls */
 #pin-controls {
@@ -146,7 +165,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .legend-item {
@@ -161,7 +180,7 @@ h1 {
   font-size: 0.85rem;
   user-select: none;
 }
-.legend-item.inactive { opacity: 0.35; }
+.legend-item.inactive { opacity: 0.3; }
 .legend-item.active { border-color: currentColor; }
 
 .legend-swatch {
@@ -174,44 +193,42 @@ h1 {
 /* Chart */
 #chart-wrap {
   position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  background: var(--chart-bg);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
   overflow: hidden;
 }
 
 #chart { display: block; width: 100%; }
 
-.axis-label {
-  font-size: 11px;
-  fill: var(--muted);
-}
-
-.tick line { stroke: #e8e5e0; }
-.tick text { font-size: 11px; fill: var(--muted); }
-.domain { display: none; }
+/* Axis text/lines scoped to main chart (dark background) */
+#chart .axis-label { font-size: 11px; fill: var(--chart-text); }
+#chart .tick line  { stroke: var(--chart-grid); }
+#chart .tick text  { font-size: 11px; fill: var(--chart-text); }
+#chart .domain     { display: none; }
 
 .bubble {
   stroke-width: 1;
   cursor: pointer;
   transition: stroke-width 0.1s;
 }
-.bubble:hover { stroke-width: 2.5; }
+.bubble:hover  { stroke-width: 2.5; }
 .bubble.pinned { stroke-width: 2.5; }
 
 .trace-line {
   fill: none;
   stroke-width: 1.5;
-  opacity: 0.55;
+  opacity: 0.65;
   pointer-events: none;
 }
 
-/* Tooltip */
+/* Tooltip — light on dark chart */
 #tooltip {
   position: absolute;
-  background: rgba(20,20,20,0.88);
-  color: #fff;
+  background: rgba(255,255,255,0.95);
+  color: var(--text);
+  border: 1px solid var(--border);
   padding: 9px 13px;
   border-radius: var(--radius);
   font-size: 0.82rem;
@@ -220,7 +237,7 @@ h1 {
   opacity: 0;
   transition: opacity 0.12s;
   max-width: 220px;
-  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
 }
 #tooltip.visible { opacity: 1; }
 #tooltip strong { font-size: 0.9rem; display: block; margin-bottom: 2px; }
@@ -243,7 +260,8 @@ h1 {
 }
 
 #detail-country-name {
-  font-size: 1.1rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
@@ -264,19 +282,23 @@ h1 {
 #detail-close:hover { background: var(--bg); }
 
 #detail-charts h3 {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   margin-bottom: 10px;
 }
 
+/* Detail chart uses light background — keep its tick styles separate */
 #detail-svg { display: block; width: 100%; }
+#detail-svg .tick line  { stroke: #e8e5e0; }
+#detail-svg .tick text  { font-size: 11px; fill: var(--muted); }
+#detail-svg .domain     { display: none; }
 
 /* Footer */
 footer {
-  margin-top: 28px;
+  margin-top: 32px;
   font-size: 0.78rem;
   color: var(--muted);
 }
