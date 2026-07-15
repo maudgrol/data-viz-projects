@@ -40,10 +40,34 @@ Promise.all([
   slider.value = 0;
 
   buildLegend();
+  buildSearchDatalist();
   initChart();
   drawFrame(0, false);
   bindControls();
 });
+
+// ── Search ───────────────────────────────────────────────────────────────────
+function buildSearchDatalist() {
+  const datalist = document.getElementById("country-list");
+  [...allData]
+    .sort((a, b) => a.country.localeCompare(b.country))
+    .forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.country;
+      datalist.appendChild(opt);
+    });
+}
+
+function pulseBubble(code) {
+  const bubble = bubblesG.selectAll(".bubble").filter((d) => d.code === code);
+  if (bubble.empty()) return;
+  const baseR = +bubble.attr("r");
+  bubble
+    .transition().duration(180).attr("r", baseR * 2)
+    .transition().duration(180).attr("r", baseR * 1.2)
+    .transition().duration(140).attr("r", baseR * 1.7)
+    .transition().duration(140).attr("r", baseR);
+}
 
 // ── Legend ───────────────────────────────────────────────────────────────────
 function buildLegend() {
@@ -394,6 +418,16 @@ function bindControls() {
   slider.addEventListener("input", () => {
     pause();
     drawFrame(+slider.value, false);
+  });
+
+  const searchInput = document.getElementById("country-search");
+  searchInput.addEventListener("change", () => {
+    const val = searchInput.value.trim();
+    const match = allData.find((d) => d.country.toLowerCase() === val.toLowerCase());
+    searchInput.value = "";
+    if (!match) return;
+    if (pinnedCode !== match.code) togglePin(match.code);
+    pulseBubble(match.code);
   });
 
   document.getElementById("detail-close").addEventListener("click", () => {
