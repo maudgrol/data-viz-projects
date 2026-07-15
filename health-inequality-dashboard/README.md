@@ -1,6 +1,6 @@
 # Health Inequality Dashboard
 
-An animated, interactive bubble chart visualizing the relationship between healthcare spending and life expectancy across 217 countries from 1990 to 2023 — built with D3.js and static World Bank data.
+An animated, interactive bubble chart visualizing the relationship between healthcare spending and life expectancy across 217 countries from 2000 to 2023 — built with D3.js and static World Bank data.
 
 **Live demo**: deploy to GitHub Pages or Netlify (see below)
 
@@ -10,7 +10,7 @@ An animated, interactive bubble chart visualizing the relationship between healt
 - **Y-axis**: Life expectancy at birth (years)
 - **Bubble size**: Population
 - **Bubble color**: Income group (Low / Lower-middle / Upper-middle / High)
-- **Animation**: Step through 1990–2023 with Play/Pause and a year slider
+- **Animation**: Step through 2000–2023 with Play/Pause and a year slider
 - **Click a bubble**: Pin a country and trace its trajectory; a detail panel shows its life expectancy vs. the global average over time
 - **Legend**: Click income groups to isolate them
 
@@ -47,9 +47,12 @@ Requirements: Python 3.13+, see `requirements.txt` (`pip install -r requirements
 Browsers block `fetch()` on `file://` URLs. Serve locally with:
 
 ```bash
-python -m http.server 8000
+cd health-inequality-dashboard
+python3.13 -m http.server 8000
 # then open http://localhost:8000
 ```
+
+To stop the server, press `Ctrl+C` in the terminal.
 
 ## Deployment (GitHub Pages)
 

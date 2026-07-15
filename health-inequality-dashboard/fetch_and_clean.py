@@ -10,7 +10,7 @@ import pandas as pd
 from pathlib import Path
 
 BASE = "https://api.worldbank.org/v2"
-DATE_RANGE = "1990:2023"
+DATE_RANGE = "2000:2023"
 
 INDICATORS = {
     "SP.DYN.LE00.IN":   "life_exp",
