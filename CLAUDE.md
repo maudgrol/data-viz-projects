@@ -31,9 +31,16 @@ Each subfolder is fully self-contained — no shared dependencies between projec
 
 ## Stack
 
-- **Data pipeline**: Python (`requests` + `pandas`), run once, outputs static JSON into `/data`
-- **Frontend**: Vanilla D3.js loaded from CDN, no build step, no bundler
-- **No shared deps**: do not introduce a root-level `package.json` or shared Python env
+Projects vary by language but share the same monorepo conventions:
+
+| Project | Data | Frontend |
+|---|---|---|
+| health-inequality-dashboard | Python (requests + pandas) → static JSON | Vanilla D3.js (CDN) |
+| education-under-attack | R (tidyverse) | R flexdashboard + Plotly |
+
+**Going forward**: new projects will use Python for data processing and JavaScript/D3.js for visualization. The education-under-attack project is the only R-based one.
+
+**No shared deps**: do not introduce a root-level `package.json` or shared Python/R environment. Each project manages its own dependencies.
 
 ## Commit discipline
 

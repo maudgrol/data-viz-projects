@@ -7,9 +7,10 @@ A collection of personal data visualization mini-projects. Each project lives in
 | Project | Description | Status |
 |---|---|---|
 | [health-inequality-dashboard](./health-inequality-dashboard/) | Global health spending vs. outcomes — Gapminder-style animated bubble chart using World Bank data | Complete |
+| [education-under-attack](./education-under-attack/) | Attacks on education globally 2013–2017 — choropleth maps built with R flexdashboard and Plotly | Complete |
 
 ## Stack
 
-- **Data**: Python (requests + pandas) for one-time fetch/clean, output to static JSON
-- **Frontend**: Vanilla D3.js, no build step required
-- **Deployment**: Any static host (GitHub Pages, Netlify, Vercel)
+Projects use Python or R for data processing and D3.js or R/flexdashboard for visualization. Each project documents its own stack in its `README.md`. Future projects will use Python and JavaScript/D3.js.
+
+- **Deployment**: Any static host (GitHub Pages, Netlify, Vercel) — each project outputs a self-contained `docs/` or `index.html`
