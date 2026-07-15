@@ -265,8 +265,8 @@ function togglePin(code) {
   } else {
     pinnedCode = code;
     drawTraceLine(code);
-    updateDetailPanel();
     document.getElementById("detail-panel").hidden = false;
+    updateDetailPanel();
     bubblesG.selectAll(".bubble").classed("pinned", (d) => d.code === code);
   }
 }
