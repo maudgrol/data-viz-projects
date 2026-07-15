@@ -226,7 +226,7 @@ function drawFrame(yearIdx, animate) {
     .attr("r", 0)
     .attr("fill", (d) => COLOR_SCALE(d.income_group))
     .attr("stroke", (d) => d3.color(COLOR_SCALE(d.income_group)).darker(0.6))
-    .attr("opacity", 0.75)
+    .attr("opacity", 0.82)
     .on("mouseover", onBubbleHover)
     .on("mousemove", onBubbleHover)
     .on("mouseout", onBubbleOut)
